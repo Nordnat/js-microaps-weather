@@ -22,6 +22,7 @@ var cookieScripts = (function() {
         }
     };
 })();
+
 var dataReceivingController = (function() {
     const connectionSettings = {
         ajaxUrl: 'http://api.openweathermap.org/data/2.5/weather?q=London&appid=c7e046393dff25b4214066924f7f7ffb',
@@ -101,13 +102,19 @@ var appController = (function(dataCtrl, UICtrl) {
     DOM = UICtrl.getDOMStrings();
     storedSearch = [];
     
-    function arrayToObj(arr, obj) {
-        obj = {};
+    function arrayToObj(arr) {
+        var obj = {};
         for(let i = 0; i < arr.length; i++) {
             obj[i] = arr[i];
         }
         return obj;
     }
+    
+    function objToArry(obj) {
+        var arr = Object.keys(obj).map(function (key) { return obj[key]; });
+        return arr;
+    }
+
     function saveSearch() {
         if(storedSearch.length < 3) {
             storedSearch.push(UICtrl.getLocation());
@@ -115,17 +122,20 @@ var appController = (function(dataCtrl, UICtrl) {
             storedSearch.shift();
             storedSearch.push(UICtrl.getLocation());
         }
-        displaySavedSearchElements();
+        // if (localStorage.getItem('lastSearch')) {
+            displaySavedSearchElements(storedSearch);
+        // }
+        
+        savedSerch();
     }
-    function displaySavedSearchElements() {
+
+    function displaySavedSearchElements(storedSearch) {
         document.querySelector(DOM.lastSearch).innerHTML = '';
         storedSearch.forEach(element => {
             var node = document.createElement('li');
             node.innerHTML = element;
             document.querySelector(DOM.lastSearch).appendChild(node);
         });
-        
-        
     }
 
     function clickPreviouslySearched() {
@@ -138,10 +148,17 @@ var appController = (function(dataCtrl, UICtrl) {
             console.log('%c -------- clickPreviouslySearched ------------', 'background-color: plum; color: white');
         });
     }
-    function savedSerch(storedSearch) {
-        // storedSearchObj = {...storedSearch};
-        // localStorage.setItem('myCat', 'Tom');
 
+    function savedSerch() {
+        localStorage.setItem('lastSearch', JSON.stringify(arrayToObj(storedSearch)));
+    }
+
+    function getSavedSearch() {
+        return JSON.parse(localStorage.getItem('lastSearch'));
+    }
+
+    function getStorageListArr() { 
+        return objToArry(getSavedSearch());
     }
 
     function ajaxSuccessCallback(data) {
@@ -183,6 +200,7 @@ var appController = (function(dataCtrl, UICtrl) {
             }
         });
     }
+
     function setConnection() {
         var connect = dataReceivingController.getConnectionSettings(UICtrl.getLocation(), UICtrl.getUnits());
         mainCall(connect);
@@ -198,9 +216,14 @@ var appController = (function(dataCtrl, UICtrl) {
     return {
         init: function() {
             rememberedCity();
+            if(localStorage.getItem('lastSearch')) {
+                storedSearch = [...getStorageListArr()]
+                displaySavedSearchElements(storedSearch);
+            }
             clickPreviouslySearched();
             onChangeRemember();
             onLocationSubmit();
+            
         }
     };
     
