@@ -36,17 +36,29 @@
                     
                     <div class="form-check mb-2 mr-sm-2 mb-sm-0">
                         <label class="form-check-label">
-                        <input class="form-check-input" type="checkbox"> Remember my choice
+                            <input class="form-check-input remember-choice" type="checkbox"> Remember my choice
+                        </label>
+                    </div>
+                    <div class="input-group">
+                        <label class="form-check-label">
+                            <input class="form-check-input units" name="units" type="radio" value="metric" checked> Metric
+                        </label>
+                        <label class="form-check-label">
+                            <input class="form-check-input units" name="units" type="radio" value="imperial"> Imperial
+                        </label>
+                        <label class="form-check-label">
+                            <input class="form-check-input units" name="units" type="radio" value="usa"> USA
                         </label>
                     </div>
                     
                     <button type="submit" class="btn btn-primary">Display weather</button>
                 </form>
-
-                <button class="test-data">test</button>
             </div>
             <div class="container display">
                 <h1>Temp in <span class="town"></span> is <span class="temp"></span></h1>
+                <ul class="search-list">
+                    
+                </ul>
             </div>
             
         </main>
