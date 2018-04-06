@@ -103,11 +103,11 @@ document.querySelector('.test-data').addEventListener('click', function () {
 /* opcje
     1. sprawdzanie czy jest takie miasto i walidacja
     2. podpowiedzi miast
-    3. zpamietywanie miasta w cookie praz localstorage
+    
     4. wybór opcji wyświetlania informacji (aktualna, 3 dniowa itd)
-    5. alternatywa ajaxa w js
+
     6. get my location
-    7. wybierz jednostki
+
     8. dodanie kolejnych lokacji/wyszukań/dni nie kasując starych
     9. promisy?
     10. 

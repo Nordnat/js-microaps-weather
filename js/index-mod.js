@@ -29,6 +29,9 @@ var dataReceivingController = (function() {
         ajaxMethodType: 'GET',
         ajaxDataType: 'json'
     };
+    let citiesURI = 'https://gist.githubusercontent.com/Nordnat/ade17ecc089c2f9ad4f8d41bbf68b94c/raw/1fcf827fe83e1f86b25955353bf7535faa832be4/cities.json';
+    let cities = [];
+
     function createWheatherAPIquery(town, units) {
         const urlOptions = {
             APIKey: 'c7e046393dff25b4214066924f7f7ffb',
@@ -43,10 +46,10 @@ var dataReceivingController = (function() {
     
         return urlOptions.APIUrl + 'q=' + town + '&appid=' + urlOptions.APIKey + urlOptions.APIUnitsFormat[units];
     }
+    
 
     return {
         getConnectionSettings: function(location, units) {
-
             const connectionObj = Object.assign({}, connectionSettings);
             connectionObj.ajaxUrl = createWheatherAPIquery(location, units);
             return connectionObj;
@@ -61,9 +64,22 @@ var dataReceivingController = (function() {
             ).then(function( data, textStatus, jqXHR ) {
                 // alert( data.main.temp ); 
                 succCallback(data);
-                
-                
             });
+        },
+        getCitiesURI: function() {
+            return citiesURI;
+        },
+        fetchCities: function(citiesURI) {
+            fetch(citiesURI).then(rawData => rawData.json()).then(data => {
+                cities.push(...data);
+                // var cluesArr = findMatches(wordToMatch, cities);
+                // clues.push(...cluesArr);
+                // console.log(clues)
+                // populate(clues, wordToMatch);
+            });
+        },
+        getCities: function () {
+            return cities;
         }
     };
 })();
@@ -76,7 +92,8 @@ var UIController = (function() {
         form: 'form',
         units: '.units',
         remember: '.remember-choice',
-        lastSearch: '.search-list'
+        lastSearch: '.search-list',
+        typeahead: '.typeahead'
     };
 
     return {
@@ -89,15 +106,26 @@ var UIController = (function() {
         setLocation: function(townToSet) {
             document.querySelector(DOMStrings.location).value = townToSet;
         },
-        getUnits: function () {
+        getUnits: function() {
             var unitsRadios = document.querySelector(DOMStrings.units + ':checked').value;
             return unitsRadios;
+        },
+        populateTypeahead: function(citiesSuggestionArr, wordToMatch) {
+            document.querySelector(DOMStrings.typeahead).innerHTML = '';
+            citiesSuggestionArr.forEach(element => {
+                var liNode = document.createElement('li');
+                var regex = new RegExp(wordToMatch, 'gi');
+
+                var innerElement = element.city.replace(regex, '<b>' + wordToMatch.toUpperCase() + '</b>');
+                liNode.innerHTML = innerElement;
+                document.querySelector(DOMStrings.typeahead).appendChild(liNode);
+            });
         }
     };
 })();
 
 var appController = (function(dataCtrl, UICtrl) {
-    var DOM, storedLocations;
+    var DOM, storedLocations, wordToMatch;
     
     DOM = UICtrl.getDOMStrings();
     storedSearch = [];
@@ -213,6 +241,24 @@ var appController = (function(dataCtrl, UICtrl) {
             setConnection();
         });
     }
+    function findMatches(wordToMatch, cities) {
+        return cities.filter(place => {
+            const regex = new RegExp(wordToMatch, 'gi');
+            return place.city.match(regex);
+        });
+        // return $.grep(cities, function(n, i) {
+        //     const regex = new RegExp(wordToMatch, 'gi');
+        //       return n.city.match(regex)
+        // })
+    }
+    function locationOnChange() {
+        document.querySelector(DOM.location).addEventListener('keyup', function() {
+            wordToMatch = UICtrl.getLocation();
+            console.log(wordToMatch);
+            var cluesArr = findMatches(wordToMatch, dataCtrl.getCities());
+            UICtrl.populateTypeahead(cluesArr, wordToMatch);
+        });
+    }
     return {
         init: function() {
             rememberedCity();
@@ -220,10 +266,11 @@ var appController = (function(dataCtrl, UICtrl) {
                 storedSearch = [...getStorageListArr()]
                 displaySavedSearchElements(storedSearch);
             }
+            dataCtrl.fetchCities(dataCtrl.getCitiesURI());
+            locationOnChange();
             clickPreviouslySearched();
             onChangeRemember();
             onLocationSubmit();
-            
         }
     };
     
